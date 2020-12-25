@@ -52,49 +52,49 @@ def upload_to_nightscout(libre_csv, base_url, api_secret, max_size=100, max_atte
     url, headers = url_and_headers(base_url, api_secret)
     last_timestamp = find_last_nightscout_entry(url, headers)
     
-    # with open(libre_csv, 'r') as csvfile:
-        # # See format of Libre tsv file discussed here: https://github.com/nahog/freestyle-libre-parser-viewer
-        # reader = csv.reader(csvfile)
-        # next(reader, None)  # skip the first line (patient name)
-        # next(reader, None)  # skip the headers
-        # i = 0
-        # for row in reader:
-            # if len(row) > 2: # omdat registratie van insuline een error veroorzaakt
-                # time = row[2]
-                # dt = datetime.strptime(time, "%m-%d-%Y %I:%M %p")
-                # dt = dt.replace(tzinfo=tz)
-                # timestamp = dt.timestamp()
-                # if timestamp <= last_timestamp:
-                    # continue
-                # if timestamp >= current_timestamp:
-                    # continue # ignore times in the future
-                # date = int(timestamp * 1000)
-                # date_string = dt.isoformat()
-                # record_type = int(row[3])
-                # if record_type == 0: # historic glucose
-                    # entry = dict(type='sgv', sgv=float(row[4]), date=date, dateString=date_string)
-                    # #print(entry)
-                    # entries.append(entry)
-                # elif record_type == 1: # scan glucose
-                    # entry = dict(type='sgv', sgv=float(row[5]), date=date, dateString=date_string)
-                    # entries.append(entry)
-                # if (len(entries) == int(max_size)):
-                    # #write entries to nightscout to avoid overflow
-                    # upload_entries(i, entries, url, headers, max_attempts)
-                    # i += 1
+    with open(libre_csv, 'r') as csvfile:
+        # See format of Libre tsv file discussed here: https://github.com/nahog/freestyle-libre-parser-viewer
+        reader = csv.reader(csvfile)
+        next(reader, None)  # skip the first line (patient name)
+        next(reader, None)  # skip the headers
+        i = 0
+        for row in reader:
+            if len(row) > 2: # omdat registratie van insuline een error veroorzaakt
+                time = row[2]
+                dt = datetime.strptime(time, "%m-%d-%Y %I:%M %p")
+                dt = dt.replace(tzinfo=tz)
+                timestamp = dt.timestamp()
+                if timestamp <= last_timestamp:
+                    continue
+                if timestamp >= current_timestamp:
+                    continue # ignore times in the future
+                date = int(timestamp * 1000)
+                date_string = dt.isoformat()
+                record_type = int(row[3])
+                if record_type == 0: # historic glucose
+                    entry = dict(type='sgv', sgv=float(row[4]), date=date, dateString=date_string)
+                    #print(entry)
+                    entries.append(entry)
+                elif record_type == 1: # scan glucose
+                    entry = dict(type='sgv', sgv=float(row[5]), date=date, dateString=date_string)
+                    entries.append(entry)
+                if (len(entries) == int(max_size)):
+                    #write entries to nightscout to avoid overflow
+                    upload_entries(i, entries, url, headers, max_attempts)
+                    i += 1
             
-        # #write the last part to nightscout
-        # if len(entries)>0:
-            # upload_entries(i, entries, url, headers, max_attempts)
+        #write the last part to nightscout
+        if len(entries)>0:
+            upload_entries(i, entries, url, headers, max_attempts)
         
-        # #print("Number of entries: %d" % len(entries))
+        #print("Number of entries: %d" % len(entries))
 
-        # #for entry in entries:
-        # #    print(entry)
+        #for entry in entries:
+        #    print(entry)
         
-        # if len(entries) == 0:
-            # print("No new entries")
-            # return
+        if len(entries) == 0:
+            print("No new entries")
+            return
  
 
 def upload_entries(i, entries, url, headers, max_attempts):
